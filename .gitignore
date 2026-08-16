@@ -77,3 +77,21 @@ Assets/AddressableAssetsData/*/*.bin*
 
 # Unity Package Manager local tarballs
 *.tgz
+
+# Unity recovery scenes
+/[Aa]ssets/_Recovery/
+/[Aa]ssets/_Recovery.meta
+
+# Third-party Asset Store content (reimport from My Assets)
+/[Aa]ssets/Art/
+/[Aa]ssets/Art.meta
+/[Aa]ssets/Meshes/
+/[Aa]ssets/Meshes.meta
+/[Aa]ssets/Textures/
+/[Aa]ssets/Textures.meta
+/[Aa]ssets/Prefabs/PBR_Golem.prefab
+/[Aa]ssets/Prefabs/PBR_Golem.prefab.meta
+/[Aa]ssets/Animations/Enemy/BigEnemy/*.anim
+/[Aa]ssets/Animations/Enemy/BigEnemy/*.anim.meta
+/[Aa]ssets/Animations/Enemy/BigEnemy/FreeGolem.controller
+/[Aa]ssets/Animations/Enemy/BigEnemy/FreeGolem.controller.meta
