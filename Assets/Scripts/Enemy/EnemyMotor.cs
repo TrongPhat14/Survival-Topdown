@@ -17,6 +17,15 @@ public class EnemyMotor : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
+    public void Configure(float moveSpeed, float attackRange)
+    {
+        if (agent != null)
+        {
+            agent.speed = Mathf.Max(0f, moveSpeed);
+            agent.stoppingDistance = Mathf.Max(0f, attackRange * 0.9f);
+        }
+    }
+
     public bool SetDestination(Vector3 destination)
     {
         if (!CanUseAgent())
@@ -37,6 +46,29 @@ public class EnemyMotor : MonoBehaviour
 
         agent.isStopped = true;
         agent.ResetPath();
+    }
+
+    public void DisableAgent()
+    {
+        if (agent != null)
+        {
+            agent.enabled = false;
+        }
+    }
+
+    public void EnableAgent()
+    {
+        if (agent == null)
+        {
+            return;
+        }
+
+        agent.enabled = true;
+
+        if (agent.isOnNavMesh)
+        {
+            agent.isStopped = false;
+        }
     }
 
     private bool CanUseAgent()

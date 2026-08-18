@@ -11,6 +11,7 @@
 # Unity memory captures, recordings, and crash reports
 [Mm]emoryCaptures/
 [Rr]ecordings/
+_SceneBackups/
 sysinfo.txt
 mono_crash.*
 crashlytics-build.properties
