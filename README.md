@@ -20,8 +20,6 @@ Nên mở project bằng đúng phiên bản Unity trên để tránh Unity tự
 4. Mở scene chính: `Assets/Scenes/SampleScene.unity`.
 5. Nhấn **Play**. Wave đầu tiên tự bắt đầu sau 2 giây.
 
-`SampleScene` đã được thêm và bật trong **Build Profiles > Scene List**.
-
 ## Điều khiển
 
 ### Mobile / chuột trong Editor
@@ -95,8 +93,6 @@ Project hiện chưa cấu hình phím bàn phím riêng; luồng test chính d�
 
 - Đòn melee hiện kiểm tra khoảng cách và quay thẳng về Player trước khi gây damage, nhưng chưa có phép kiểm tra góc hình nón `50°` riêng tại damage frame.
 - `Wave5.asset` hiện được tăng độ khó thành 4-5 melee và 2-3 ranged; đề yêu cầu mỗi wave đều là 3-4 melee và 1-2 ranged.
-- Chưa có binding bàn phím; đây không phải yêu cầu bắt buộc vì project dùng joystick ảo.
-- Video gameplay và file build Android/Windows không được lưu trong repository này.
 
 ## Cấu hình gameplay
 
@@ -120,13 +116,3 @@ Một số raw Asset Store content không được commit vào repository. Trư�
 - Golem character/animation package dùng bởi `Enemy.prefab` và `RangedEnemy.prefab`
 
 Project vẫn lưu scene, gameplay scripts, prefab cấu hình, material tùy chỉnh, Input Actions, NavMesh data và Animator Controller do project tạo. Nếu dependency chưa được reimport, Unity có thể hiển thị model/material bị thiếu dù code gameplay vẫn compile.
-
-## Kiểm tra nhanh trước khi nộp
-
-1. Mở `Assets/Scenes/SampleScene.unity` và xác nhận Console không có compile error.
-2. Test joystick, ba nút kỹ năng, charge và cooldown.
-3. Test melee attack, poison 4 tick và refresh poison.
-4. Clear từng wave, kiểm tra enemy alive count và chỉ chuyển wave khi số lượng về 0.
-5. Kiểm tra EXP dư, level up và các chỉ số HP/Armor/Damage Multiplier.
-6. Test cả Victory, Game Over và Play Again.
-7. Build thiết bị đích từ **File > Build Profiles** sau khi scene chính đã được tick.
