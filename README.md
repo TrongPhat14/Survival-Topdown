@@ -49,10 +49,6 @@ The project focuses on responsive mobile-first combat, readable gameplay feedbac
 
 Gameplay responsibilities are split into focused components such as movement, facing, targeting, weapons, skills, health, progression, enemy movement, and wave control. Event-driven UI components observe gameplay state without owning combat logic, while factories manage pooled runtime objects.
 
-The full class diagram is available in [`Docs/Project-UML.svg`](Docs/Project-UML.svg), with Mermaid source in [`Docs/Project-UML.mmd`](Docs/Project-UML.mmd).
-
-![Survival Top-down class diagram](Docs/Project-UML.svg)
-
 ## Technology
 
 | Technology | Version / use |
