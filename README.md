@@ -1,118 +1,142 @@
 # Survival Top-down
 
-Prototype game survival góc nhìn top-down làm bằng Unity. Người chơi di chuyển bằng joystick ảo, chiến đấu qua 5 wave gồm quái cận chiến và quái đánh xa, nhận EXP và tăng chỉ số khi lên cấp.
+Survival Top-down is a single-player action survival game built with Unity. The player fights through five increasingly difficult waves, combines a spread-shot basic attack with two active skills, and gains permanent combat upgrades during each run.
 
-## Unity version
+The project focuses on responsive mobile-first combat, readable gameplay feedback, data-driven balancing, and reusable gameplay systems.
 
-- Unity `6000.3.10f1` (Unity 6.3 LTS)
-- Universal Render Pipeline `17.3.0`
-- Input System `1.18.0`
-- Cinemachine `3.1.7`
-- AI Navigation `2.0.10`
+## Gameplay loop
 
-Nên mở project bằng đúng phiên bản Unity trên để tránh Unity tự nâng cấp asset, scene hoặc package.
+1. Move through the arena and keep distance from melee and ranged enemies.
+2. Use the basic attack, bomb, and repulse dash to control each wave.
+3. Defeat enemies to gain EXP and improve health, armor, and damage.
+4. Survive all five waves to complete the run.
 
-## Cách mở và chạy
+## Key features
 
-1. Clone repository và thêm thư mục project vào Unity Hub bằng **Add project from disk**.
-2. Mở project bằng Unity `6000.3.10f1` và chờ Package Manager import xong toàn bộ package.
-3. Nếu model, material hoặc animation bị thiếu, reimport các dependency ở mục [Asset dependencies](#asset-dependencies).
-4. Mở scene chính: `Assets/Scenes/SampleScene.unity`.
-5. Nhấn **Play**. Wave đầu tiên tự bắt đầu sau 2 giây.
+### Player combat
 
-## Điều khiển
+- Mobile joystick, keyboard/mouse, and gamepad input through Unity Input System.
+- Auto-targeting selects a valid enemy inside the `6.5` unit attack range.
+- Movement keeps control of the player's facing direction; pressing attack instantly faces the target for the shot, then returns rotation control to movement.
+- Aim-aligned projectile spawning prevents shots from crossing through the player model during fast direction changes.
+- Three-projectile spread attack with fixed three-charge resource and timed charge recovery.
+- Bomb skill with delayed area damage and a repulse dash that combines movement with an impact explosion.
+- World-space range indicators are reused for the basic attack, bomb, and dash.
 
-### Mobile / chuột trong Editor
+### Enemies and status effects
 
-| Điều khiển | Chức năng |
+- Melee enemies chase with NavMesh and validate distance plus a `50` degree attack cone at the damage frame.
+- Ranged enemies fire homing poison projectiles that can still be blocked by obstacles.
+- Poison refreshes instead of stacking duplicate coroutines.
+- Poison ticks display colored damage numbers, a ground aura, and a countdown status label above the player.
+- Enemy animation states cover idle, movement, attack, death, and victory.
+
+### Waves and progression
+
+- Five ScriptableObject-driven waves with increasing enemy count and spawn pressure.
+- Melee and ranged enemies provide different EXP rewards.
+- Level-ups increase current health, maximum health, armor, and damage multiplier while preserving excess EXP.
+- Victory, game-over, restart, wave progress, enemy count, level, and EXP interfaces complete the gameplay loop.
+
+### Feedback and performance
+
+- Camera shake, hit effects, skill VFX, damage popups, sound effects, and background music.
+- Object pools for enemies, projectiles, VFX, and damage popups.
+- `Physics.OverlapSphereNonAlloc` is used for repeated target queries.
+- Combat and progression values are separated into ScriptableObjects for quick balancing.
+
+## Architecture
+
+Gameplay responsibilities are split into focused components such as movement, facing, targeting, weapons, skills, health, progression, enemy movement, and wave control. Event-driven UI components observe gameplay state without owning combat logic, while factories manage pooled runtime objects.
+
+The full class diagram is available in [`Docs/Project-UML.svg`](Docs/Project-UML.svg), with Mermaid source in [`Docs/Project-UML.mmd`](Docs/Project-UML.mmd).
+
+![Survival Top-down class diagram](Docs/Project-UML.svg)
+
+## Technology
+
+| Technology | Version / use |
 |---|---|
-| Joystick bên trái | Di chuyển và đổi hướng Player |
-| Nút lớn bên phải | Đánh thường: bắn 3 viên theo góc `-15°, 0°, +15°` |
-| Nút Blast | Đặt bom tại vị trí Player |
-| Nút Repulse | Dash theo hướng forward rồi gây nổ |
-| Play Again | Chơi lại sau Victory hoặc Game Over |
+| Unity | `6000.3.10f1` |
+| Universal Render Pipeline | `17.3.0` |
+| Input System | `1.18.0` |
+| Cinemachine | `3.1.7` |
+| AI Navigation | `2.0.10` |
+| Language | C# |
+| Primary build target | Android |
 
-Trong Editor có thể kéo joystick và bấm các nút UI bằng chuột.
+## Controls
+
+### Mobile / Unity Editor UI
+
+| Control | Action |
+|---|---|
+| Left joystick | Move |
+| Main attack button | Fire spread shot |
+| Blast | Place bomb |
+| Repulse | Dash and explode |
+| Play Again | Restart after victory or game over |
+
+### Keyboard and mouse
+
+| Input | Action |
+|---|---|
+| `WASD` | Move |
+| `Space` or left mouse button | Basic attack |
+| `Q` | Blast |
+| `E` | Repulse |
 
 ### Gamepad
 
-| Input | Chức năng |
+| Input | Action |
 |---|---|
-| Left Stick | Di chuyển |
-| Button South | Đánh thường |
-| Button West | Blast / đặt bom |
-| Button North | Repulse / dash |
+| Left Stick | Move |
+| Button South | Basic attack |
+| Button West | Blast |
+| Button North | Repulse |
 
-Project hiện chưa cấu hình phím bàn phím riêng; luồng test chính dùng UI hoặc gamepad.
+## Project structure
 
-## Phần đã làm
-
-### Player và combat
-
-- Player có `500 HP`, tốc độ di chuyển `2 unit/s`, tốc độ xoay `180°/s`, giáp ban đầu `0`.
-- Camera top-down follow Player bằng Cinemachine.
-- Sát thương Player nhận: `max(0, sát thương gốc - giáp)`.
-- Sát thương Player gây ra: `sát thương gốc x (1 + Damage Multiplier)`.
-- Hướng bắn và dash lấy theo `forward` hiện tại của Player.
-- Đánh thường bắn 3 projectile theo góc `-15°, 0°, +15°`, mỗi viên có damage gốc `10`.
-- Tối đa 3 charge, hồi 1 charge mỗi 3 giây, fire interval 0.5 giây.
-- Bom nổ sau 2 giây, damage gốc 50, bán kính 5 unit, cooldown 12 giây.
-- Dash 3 unit trong 0.5 giây, nổ damage gốc 15 trong bán kính 3 unit, cooldown 6 giây.
-- Projectile chỉ xử lý các layer mục tiêu được cấu hình và được tái sử dụng bằng Object Pool.
-
-### Enemy
-
-- Quái cận chiến: `220 HP`, tốc độ `3`, tầm đánh `1.3`, damage gốc `30`.
-- Quái đánh xa: `180 HP`, tốc độ `2.7`, tầm bắn `3`, dùng đạn độc.
-- Đạn độc có tốc độ `10 unit/s`, tồn tại `0.5 giây` tương ứng tối đa 5 unit.
-- Độc tick ngay khi trúng và thêm 3 tick, mỗi tick cách 1 giây; dính lại sẽ refresh thời gian và không cộng dồn coroutine.
-- Enemy tìm đường bằng NavMesh, dừng để tấn công, phát animation Idle/Walk/Attack/Die/Victory.
-- Enemy có health bar world-space luôn hướng về camera và damage popup khi nhận sát thương.
-- Enemy được spawn, thu hồi và tái sử dụng bằng Object Pool.
-
-### Wave, EXP và kết quả
-
-- Có 5 `WaveData`; wave kế tiếp chỉ bắt đầu khi toàn bộ enemy của wave hiện tại đã chết.
-- Wave 1-4 spawn ngẫu nhiên 3-4 melee và 1-2 ranged.
-- Mỗi enemy cho 30 EXP; đủ 100 EXP tăng 1 level và giữ EXP dư.
-- Mỗi level tăng 40 HP hiện tại, 40 Max HP, 2 giáp và 0.1 Damage Multiplier.
-- Có UI hiển thị wave hiện tại, tiến độ wave, số enemy còn sống, EXP và level.
-- Có màn hình Victory/Game Over và nút Play Again để reload scene.
-
-### UI và bonus
-
-- Player health bar, level, EXP bar, joystick và ba nút kỹ năng.
-- UI charge cho đánh thường và cooldown cho bom/dash.
-- Attack range indicator cho đánh thường, vùng nổ bom và dash.
-- Camera shake khi projectile của Player trúng enemy, bom nổ và Player nhận damage.
-- VFX spawn/hit/bomb/dash, SFX walking/hit/bomb/level up/victory/lose/button và nhạc nền.
-- Object Pool cho enemy, projectile, VFX và damage popup.
-- Thông số gameplay chính được tách thành ScriptableObject trong `Assets/Data`.
-
-## Phần chưa làm / chưa khớp hoàn toàn với đề
-
-- Đòn melee hiện kiểm tra khoảng cách và quay thẳng về Player trước khi gây damage, nhưng chưa có phép kiểm tra góc hình nón `50°` riêng tại damage frame.
-- `Wave5.asset` hiện được tăng độ khó thành 4-5 melee và 2-3 ranged; đề yêu cầu mỗi wave đều là 3-4 melee và 1-2 ranged.
-
-## Cấu hình gameplay
-
-Các chỉ số có thể chỉnh trực tiếp trong ScriptableObject:
-
-| Dữ liệu | Đường dẫn |
+| Path | Responsibility |
 |---|---|
-| Đánh thường | `Assets/Data/Attacks/BasicAttack.asset` |
-| Bom | `Assets/Data/Skills/Bomb.asset` |
-| Dash | `Assets/Data/Skills/Dash.asset` |
-| Player progression | `Assets/Data/Progression/PlayerProgression.asset` |
-| Enemy melee/ranged | `Assets/Data/Enemies` |
-| Wave 1-5 | `Assets/Data/Wave` |
+| `Assets/Scripts/Player` | Movement, facing, targeting, weapon, skills, progression |
+| `Assets/Scripts/Enemy` | Enemy state, NavMesh movement, melee and ranged attacks |
+| `Assets/Scripts/Combat` | Projectiles, poison, bombs, area damage, pooling |
+| `Assets/Scripts/UI` | HUD, health, wave, status, result, damage popup |
+| `Assets/Scripts/Data` | ScriptableObject definitions |
+| `Assets/Data` | Tunable combat, enemy, progression, skill, and wave values |
+| `Assets/Prefabs` | Player, enemies, projectiles, UI, VFX, and indicators |
+| `Assets/Scenes/SampleScene.unity` | Main gameplay scene |
+
+## Run the project
+
+1. Clone the repository.
+2. Add the project folder through Unity Hub using **Add project from disk**.
+3. Open it with Unity `6000.3.10f1` and wait for package import and script compilation to finish.
+4. Open `Assets/Scenes/SampleScene.unity`.
+5. Enter Play Mode. The first wave begins automatically after a short delay.
+
+`SampleScene` is already enabled in **Build Profiles > Scene List**.
+
+## Build
+
+1. Open **File > Build Profiles**.
+2. Select Android and confirm `SampleScene` is enabled.
+3. Wait until Unity finishes compiling and the Console contains no errors.
+4. Choose **Build** and select an output location outside the `Assets` folder.
 
 ## Asset dependencies
 
-Một số raw Asset Store content không được commit vào repository. Trước khi Play, hãy mở **Window > Package Manager > My Assets** và reimport các package tương ứng:
+Some raw Asset Store packages are not stored in this repository. If models, materials, or animations are missing, reimport the corresponding packages from **Window > Package Manager > My Assets**:
 
 - Tiny Bird Duo PBR Polyart
 - Elementary Dungeon Pack Lite
-- Golem character/animation package dùng bởi `Enemy.prefab` và `RangedEnemy.prefab`
+- Golem character and animation package used by the enemy prefabs
 
-Project vẫn lưu scene, gameplay scripts, prefab cấu hình, material tùy chỉnh, Input Actions, NavMesh data và Animator Controller do project tạo. Nếu dependency chưa được reimport, Unity có thể hiển thị model/material bị thiếu dù code gameplay vẫn compile.
+The repository includes the gameplay code, scenes, prefab configuration, custom materials, Input Actions, NavMesh data, Animator Controllers, and project-authored documentation.
+
+## Current scope
+
+- One arena and one complete five-wave run.
+- Local single-player gameplay.
+- Mobile-first UI with desktop and gamepad controls for development and testing.

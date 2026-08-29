@@ -14,7 +14,6 @@ public class BasicAttackData : ScriptableObject
     [SerializeField, Min(0.5f)] private float attackRange = 8f;
 
     [Header("Charges")]
-    [SerializeField, Min(1)] private int maxCharges = 3;
     [SerializeField, Min(0.1f)] private float chargeRecoveryDuration = 3f;
 
     public Projectile ProjectilePrefab => projectilePrefab;
@@ -24,6 +23,5 @@ public class BasicAttackData : ScriptableObject
     public float SpreadAngle => spreadAngle;
     public float BaseDamage => baseDamage;
     public float AttackRange => attackRange;
-    public int MaxCharges => maxCharges;
     public float ChargeRecoveryDuration => chargeRecoveryDuration;
 }

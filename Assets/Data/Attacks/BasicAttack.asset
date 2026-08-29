@@ -14,10 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BasicAttackData
   projectilePrefab: {fileID: 114000, guid: 01c85fc9f18e4bdb8c73c93b90bd791e, type: 3}
   impactEffectPrefab: {fileID: 4021103657954561961, guid: 5c755f9bc5253ea418e919994537dcc7, type: 3}
-  fireInterval: 0.5
+  fireInterval: 0.35
   projectileCount: 3
-  spreadAngle: 30
-  baseDamage: 10
-  attackRange: 7
-  maxCharges: 3
-  chargeRecoveryDuration: 3
+  spreadAngle: 24
+  baseDamage: 35
+  attackRange: 6.5
+  chargeRecoveryDuration: 1.5

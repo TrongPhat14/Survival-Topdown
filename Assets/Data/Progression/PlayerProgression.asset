@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58d318a6e8254eab86e394340505450f, type: 3}
   m_Name: PlayerProgression
   m_EditorClassIdentifier: Assembly-CSharp::ProgressionData
-  experiencePerLevel: 100
-  maxHealthIncrease: 40
-  currentHealthIncrease: 40
-  armorIncrease: 2
-  damageMultiplierIncrease: 0.1
+  experiencePerLevel: 150
+  maxHealthIncrease: 30
+  currentHealthIncrease: 25
+  armorIncrease: 1.5
+  damageMultiplierIncrease: 0.08

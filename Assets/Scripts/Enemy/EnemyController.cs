@@ -28,6 +28,9 @@ public class EnemyController : MonoBehaviour
     private EnemyController sourcePrefab;
 
     protected EnemyData Data => data;
+    protected Transform Target => target;
+    protected bool HasLivingTarget =>
+        target != null && targetHealth != null && !targetHealth.IsDead;
     protected virtual int AttackAnimationStateHash => MeleeAttackStateHash;
     public int ExperienceReward => data != null ? data.ExperienceReward : 0;
 

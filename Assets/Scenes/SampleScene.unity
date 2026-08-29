@@ -3331,6 +3331,34 @@ PrefabInstance:
       propertyPath: popupPoint
       value: 
       objectReference: {fileID: 1926541199}
+    - target: {fileID: 9000000000000000111, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
+      propertyPath: auraColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000000000000000111, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
+      propertyPath: auraColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000000000000000111, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
+      propertyPath: auraColor.r
+      value: 0.7928543
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000000000000000111, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
+      propertyPath: labelColor.a
+      value: 0.18039216
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000000000000000111, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
+      propertyPath: labelColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000000000000000111, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
+      propertyPath: labelColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9000000000000000111, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
+      propertyPath: labelColor.r
+      value: 0.24280453
+      objectReference: {fileID: 0}
     - target: {fileID: 9000000000000000201, guid: 10e4c2bc72d9ba84180847d6bd111659, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -5031,7 +5059,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineBasicMultiChannelPerlin
   NoiseProfile: {fileID: 11400000, guid: 69ce8388f6785dd4c8c39915efece2f4, type: 2}
   PivotOffset: {x: 0, y: 0, z: 0}
-  AmplitudeGain: 0
+  AmplitudeGain: 0.1666987
   FrequencyGain: 5
   m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!114 &1153898386

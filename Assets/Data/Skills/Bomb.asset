@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BombSkillData
   bombPrefab: {fileID: 3587466775786390268, guid: 121c78ee42262cc4692d483b944cb325, type: 3}
   explosionEffectPrefab: {fileID: 8194992990867289339, guid: 99bc28c0d45f51c4fbac01080b73edc7, type: 3}
-  explosionEffectScale: 3
-  fuseDuration: 2
-  baseDamage: 50
-  explosionRadius: 5
-  cooldown: 12
+  explosionEffectScale: 2.5
+  fuseDuration: 1.4
+  baseDamage: 90
+  explosionRadius: 4
+  cooldown: 9

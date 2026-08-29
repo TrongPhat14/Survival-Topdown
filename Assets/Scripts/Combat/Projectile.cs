@@ -20,6 +20,8 @@ public class Projectile : MonoBehaviour
     private bool isReleased;
 
     protected float CurrentDamage => currentDamage;
+    protected float MoveSpeed => speed;
+    protected Rigidbody Body => body;
 
     protected virtual void Awake()
     {

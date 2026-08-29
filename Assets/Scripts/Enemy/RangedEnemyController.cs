@@ -35,23 +35,39 @@ public class RangedEnemyController : EnemyController
 
     protected override void PerformAttack()
     {
-        if (muzzle == null || projectilePrefab == null || projectileFactory == null)
+        if (muzzle == null ||
+            projectilePrefab == null ||
+            projectileFactory == null ||
+            Target == null)
         {
             Debug.LogWarning("Ranged enemy is missing its muzzle or poison projectile.", this);
             return;
         }
 
-        projectileFactory.Spawn(
+        Vector3 direction = Target.position - muzzle.position;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude <= 0.001f)
+        {
+            direction = muzzle.forward;
+        }
+
+        Projectile spawnedProjectile = projectileFactory.Spawn(
             projectilePrefab,
             transform.root,
             muzzle.position,
-            muzzle.rotation,
-            muzzle.forward,
+            Quaternion.LookRotation(direction, Vector3.up),
+            direction,
             Data.AttackDamage);
+
+        if (spawnedProjectile is PoisonProjectile poisonProjectile)
+        {
+            poisonProjectile.SetHomingTarget(Target);
+        }
     }
 
     protected override bool CanDamageTargetAtImpact()
     {
-        return IsTargetWithinAttackRange();
+        return HasLivingTarget;
     }
 }

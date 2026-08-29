@@ -5,6 +5,8 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerTargeting))]
 public class WeaponController : MonoBehaviour
 {
+    private const int FixedMaxCharges = 3;
+
     [Header("References")]
     [SerializeField] private Transform muzzle;
     [SerializeField] private BasicAttackData attackData;
@@ -19,9 +21,9 @@ public class WeaponController : MonoBehaviour
 
     public float AttackRange => attackData != null ? attackData.AttackRange : 0f;
     public int CurrentCharges => currentCharges;
-    public int MaxCharges => attackData != null ? attackData.MaxCharges : 0;
+    public int MaxCharges => attackData != null ? FixedMaxCharges : 0;
     public float ChargeRecoveryProgress =>
-        attackData == null || currentCharges >= attackData.MaxCharges
+        attackData == null || currentCharges >= FixedMaxCharges
             ? 0f
             : Mathf.Clamp01(chargeRecoveryTimer / attackData.ChargeRecoveryDuration);
     public float DamageMultiplier => damageMultiplier;
@@ -48,7 +50,7 @@ public class WeaponController : MonoBehaviour
 
         targeting = GetComponent<PlayerTargeting>();
         playerController = GetComponent<PlayerController>();
-        currentCharges = attackData.MaxCharges;
+        currentCharges = FixedMaxCharges;
         attackRangeIndicator = AttackRangeIndicator.CreateSkillIndicator(
             rangeIndicatorPrefab,
             transform,
@@ -90,7 +92,11 @@ public class WeaponController : MonoBehaviour
 
     private void OnDestroy()
     {
-        attackRangeIndicator?.Dispose();
+        if (attackRangeIndicator != null)
+        {
+            attackRangeIndicator.Dispose();
+        }
+
         attackRangeIndicator = null;
     }
 
@@ -171,7 +177,7 @@ public class WeaponController : MonoBehaviour
 
     private void RecoverCharges()
     {
-        if (attackData == null || currentCharges >= attackData.MaxCharges)
+        if (attackData == null || currentCharges >= FixedMaxCharges)
         {
             chargeRecoveryTimer = 0f;
             return;
@@ -180,14 +186,14 @@ public class WeaponController : MonoBehaviour
         chargeRecoveryTimer += Time.deltaTime;
 
         while (chargeRecoveryTimer >= attackData.ChargeRecoveryDuration &&
-               currentCharges < attackData.MaxCharges)
+               currentCharges < FixedMaxCharges)
         {
             chargeRecoveryTimer -= attackData.ChargeRecoveryDuration;
             currentCharges++;
             ChargesChanged?.Invoke(currentCharges);
         }
 
-        if (currentCharges >= attackData.MaxCharges)
+        if (currentCharges >= FixedMaxCharges)
         {
             chargeRecoveryTimer = 0f;
         }

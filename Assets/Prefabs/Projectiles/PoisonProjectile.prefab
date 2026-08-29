@@ -98,14 +98,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbe1728184624185a959376e11e7b085, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PoisonProjectile
-  speed: 10
-  lifetime: 0.5
-  damage: 30
+  speed: 11
+  lifetime: 1.1
+  damage: 10
   hitLayers:
     serializedVersion: 2
     m_Bits: 264
   poisonDuration: 3
   tickInterval: 1
+  homingTurnSpeed: 240
 --- !u!1 &100001
 GameObject:
   m_ObjectHideFlags: 0

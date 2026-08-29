@@ -253,7 +253,11 @@ public class PlayerSkills : MonoBehaviour
 
     private void DisposeDashIndicator()
     {
-        dashRangeIndicator?.Dispose();
+        if (dashRangeIndicator != null)
+        {
+            dashRangeIndicator.Dispose();
+        }
+
         dashRangeIndicator = null;
     }
 
