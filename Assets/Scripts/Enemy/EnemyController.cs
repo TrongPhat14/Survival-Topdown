@@ -14,6 +14,7 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private EnemyData data;
     [SerializeField] private Transform target;
     [SerializeField] private Animator animator;
+    [SerializeField, Range(1f, 360f)] private float meleeAttackAngle = 50f;
 
     private EnemyMotor motor;
     private Health health;
@@ -139,9 +140,7 @@ public class EnemyController : MonoBehaviour
             data.DamageDelay,
             data.AttackDuration));
 
-        if (!isDead &&
-            target != null &&
-            GetFlatDistanceToTarget() <= data.AttackRange)
+        if (!isDead && CanDamageTargetAtImpact())
         {
             PerformAttack();
         }
@@ -163,6 +162,34 @@ public class EnemyController : MonoBehaviour
     protected virtual void PerformAttack()
     {
         targetHealth?.TakeDamage(data.AttackDamage);
+    }
+
+    protected virtual bool CanDamageTargetAtImpact()
+    {
+        if (!IsTargetWithinAttackRange())
+        {
+            return false;
+        }
+
+        Vector3 direction = target.position - transform.position;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude <= 0.001f)
+        {
+            return true;
+        }
+
+        float minimumDot = Mathf.Cos(
+            meleeAttackAngle * 0.5f * Mathf.Deg2Rad);
+        return Vector3.Dot(
+            transform.forward,
+            direction.normalized) >= minimumDot;
+    }
+
+    protected bool IsTargetWithinAttackRange()
+    {
+        return target != null &&
+               GetFlatDistanceToTarget() <= data.AttackRange;
     }
 
     internal void PrepareForSpawn(EnemyFactory factory, EnemyController prefab)

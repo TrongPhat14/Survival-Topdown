@@ -1,6 +1,12 @@
 using System;
 using UnityEngine;
 
+public enum DamageType
+{
+    Direct,
+    Poison
+}
+
 public class Health : MonoBehaviour
 {
     [SerializeField, Min(1f)] private float maxHealth = 100f;
@@ -9,7 +15,7 @@ public class Health : MonoBehaviour
     private bool isPlayer;
 
     public event Action<float, float> HealthChanged;
-    public event Action<float> Damaged;
+    public event Action<float, DamageType> Damaged;
     public event Action Died;
 
     public float CurrentHealth => currentHealth;
@@ -23,7 +29,9 @@ public class Health : MonoBehaviour
         ResetHealth();
     }
 
-    public bool TakeDamage(float damage)
+    public bool TakeDamage(
+        float damage,
+        DamageType damageType = DamageType.Direct)
     {
         if (damage <= 0f || IsDead)
         {
@@ -40,7 +48,7 @@ public class Health : MonoBehaviour
         currentHealth = Mathf.Max(0f, currentHealth - appliedDamage);
         SoundManager.PlayAt(SoundId.Hit, transform.position);
         HealthChanged?.Invoke(currentHealth, maxHealth);
-        Damaged?.Invoke(appliedDamage);
+        Damaged?.Invoke(appliedDamage, damageType);
 
         if (isPlayer)
         {

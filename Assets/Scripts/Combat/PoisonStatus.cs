@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -7,6 +8,15 @@ public class PoisonStatus : MonoBehaviour
 {
     private Health health;
     private Coroutine poisonRoutine;
+    private float poisonEndTime;
+
+    public event Action PoisonStarted;
+    public event Action PoisonEnded;
+
+    public bool IsPoisoned { get; private set; }
+    public float RemainingDuration => IsPoisoned
+        ? Mathf.Max(0f, poisonEndTime - Time.time)
+        : 0f;
 
     private void Awake()
     {
@@ -28,8 +38,9 @@ public class PoisonStatus : MonoBehaviour
             return;
         }
 
-        ClearPoison();
-        health.TakeDamage(damagePerTick);
+        ClearPoison(false);
+        BeginPoison(duration);
+        health.TakeDamage(damagePerTick, DamageType.Poison);
 
         if (!health.IsDead && duration > 0f && tickInterval > 0f)
         {
@@ -37,7 +48,11 @@ public class PoisonStatus : MonoBehaviour
                 damagePerTick,
                 duration,
                 tickInterval));
+
+            return;
         }
+
+        EndPoison();
     }
 
     private IEnumerator PoisonRoutine(
@@ -57,20 +72,43 @@ public class PoisonStatus : MonoBehaviour
                 break;
             }
 
-            health.TakeDamage(damagePerTick);
+            health.TakeDamage(damagePerTick, DamageType.Poison);
         }
 
         poisonRoutine = null;
+        EndPoison();
     }
 
-    private void ClearPoison()
+    private void BeginPoison(float duration)
     {
-        if (poisonRoutine == null)
+        IsPoisoned = true;
+        poisonEndTime = Time.time + Mathf.Max(0f, duration);
+        PoisonStarted?.Invoke();
+    }
+
+    private void EndPoison()
+    {
+        if (!IsPoisoned)
         {
             return;
         }
 
-        StopCoroutine(poisonRoutine);
-        poisonRoutine = null;
+        IsPoisoned = false;
+        poisonEndTime = 0f;
+        PoisonEnded?.Invoke();
+    }
+
+    private void ClearPoison(bool notifyEnded = true)
+    {
+        if (poisonRoutine != null)
+        {
+            StopCoroutine(poisonRoutine);
+            poisonRoutine = null;
+        }
+
+        if (notifyEnded)
+        {
+            EndPoison();
+        }
     }
 }

@@ -2,11 +2,13 @@ using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
+[RequireComponent(typeof(PlayerTargeting))]
 public class WeaponController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform muzzle;
     [SerializeField] private BasicAttackData attackData;
+    [SerializeField] private AttackRangeIndicator rangeIndicatorPrefab;
 
     [Header("Projectile Pool")]
     [SerializeField, Min(1)] private int initialPoolSize = 24;
@@ -31,6 +33,9 @@ public class WeaponController : MonoBehaviour
     private GameInput gameInput;
     private ProjectileFactory projectileFactory;
     private VfxPool vfxPool;
+    private PlayerTargeting targeting;
+    private PlayerController playerController;
+    private AttackRangeIndicator attackRangeIndicator;
 
     private void Awake()
     {
@@ -41,7 +46,14 @@ public class WeaponController : MonoBehaviour
             return;
         }
 
+        targeting = GetComponent<PlayerTargeting>();
+        playerController = GetComponent<PlayerController>();
         currentCharges = attackData.MaxCharges;
+        attackRangeIndicator = AttackRangeIndicator.CreateSkillIndicator(
+            rangeIndicatorPrefab,
+            transform,
+            AttackRange);
+        attackRangeIndicator?.Hide();
         ResolveProjectileFactory();
         ResolveImpactVfxPool();
     }
@@ -57,7 +69,9 @@ public class WeaponController : MonoBehaviour
 
         if (gameInput != null)
         {
+            gameInput.AttackStarted += ShowAttackRange;
             gameInput.AttackPressed += HandleAttackPressed;
+            gameInput.AttackReleased += HideAttackRange;
         }
     }
 
@@ -65,15 +79,35 @@ public class WeaponController : MonoBehaviour
     {
         if (gameInput != null)
         {
+            gameInput.AttackStarted -= ShowAttackRange;
             gameInput.AttackPressed -= HandleAttackPressed;
+            gameInput.AttackReleased -= HideAttackRange;
             gameInput = null;
         }
+
+        HideAttackRange();
+    }
+
+    private void OnDestroy()
+    {
+        attackRangeIndicator?.Dispose();
+        attackRangeIndicator = null;
     }
 
     private void HandleAttackPressed()
     {
         SoundManager.Play(SoundId.ClickButton);
         TryFire();
+    }
+
+    private void ShowAttackRange()
+    {
+        attackRangeIndicator?.Show(AttackRange);
+    }
+
+    private void HideAttackRange()
+    {
+        attackRangeIndicator?.Hide();
     }
 
     public bool TryFire()
@@ -91,22 +125,34 @@ public class WeaponController : MonoBehaviour
         ChargesChanged?.Invoke(currentCharges);
 
         float shotDamage = CalculateDamage(attackData.BaseDamage);
+        Quaternion aimRotation = GetAimRotation(
+            out Vector3 aimDirection,
+            out Vector3 spawnPosition);
+
+        if (aimDirection.sqrMagnitude > 0.01f)
+        {
+            playerController?.RequestAttackFacing(aimDirection);
+        }
 
         for (int i = 0; i < attackData.ProjectileCount; i++)
         {
-            Quaternion shotRotation = GetShotRotation(i);
+            Quaternion shotRotation = GetShotRotation(i, aimRotation);
 
             projectileFactory.Spawn(
                 attackData.ProjectilePrefab,
                 transform.root,
-                muzzle.position,
+                spawnPosition,
                 shotRotation,
                 shotRotation * Vector3.forward,
                 shotDamage,
                 vfxPool,
                 attackData.ImpactEffectPrefab);
 
-            Debug.DrawRay(muzzle.position, shotRotation * Vector3.forward * 2f, Color.cyan, 0.25f);
+            Debug.DrawRay(
+                spawnPosition,
+                shotRotation * Vector3.forward * 2f,
+                Color.cyan,
+                0.25f);
         }
 
         Fired?.Invoke();
@@ -173,11 +219,56 @@ public class WeaponController : MonoBehaviour
         }
     }
 
-    private Quaternion GetShotRotation(int shotIndex)
+    private Quaternion GetAimRotation(
+        out Vector3 aimDirection,
+        out Vector3 spawnPosition)
+    {
+        if (targeting != null &&
+            targeting.TryGetAimDirection(
+                transform.position,
+                out Vector3 facingDirection))
+        {
+            Quaternion facingRotation = Quaternion.LookRotation(
+                facingDirection,
+                Vector3.up);
+            spawnPosition = GetAimAlignedMuzzlePosition(facingRotation);
+            aimDirection = facingDirection;
+
+            Transform currentTarget = targeting.CurrentTarget;
+            if (currentTarget != null)
+            {
+                Vector3 directionFromMuzzle =
+                    currentTarget.position - spawnPosition;
+                directionFromMuzzle.y = 0f;
+
+                if (directionFromMuzzle.sqrMagnitude > 0.001f)
+                {
+                    aimDirection = directionFromMuzzle.normalized;
+                }
+            }
+
+            return Quaternion.LookRotation(aimDirection, Vector3.up);
+        }
+
+        aimDirection = Vector3.zero;
+        spawnPosition = muzzle.position;
+        return muzzle.rotation;
+    }
+
+    private Vector3 GetAimAlignedMuzzlePosition(Quaternion aimRotation)
+    {
+        Vector3 currentMuzzleOffset = muzzle.position - transform.position;
+        Quaternion rotationDelta =
+            aimRotation * Quaternion.Inverse(transform.rotation);
+
+        return transform.position + rotationDelta * currentMuzzleOffset;
+    }
+
+    private Quaternion GetShotRotation(int shotIndex, Quaternion aimRotation)
     {
         if (attackData.ProjectileCount <= 1)
         {
-            return muzzle.rotation;
+            return aimRotation;
         }
 
         float t = shotIndex / (attackData.ProjectileCount - 1f);
@@ -185,7 +276,7 @@ public class WeaponController : MonoBehaviour
             -attackData.SpreadAngle * 0.5f,
             attackData.SpreadAngle * 0.5f,
             t);
-        return Quaternion.AngleAxis(yawOffset, Vector3.up) * muzzle.rotation;
+        return Quaternion.AngleAxis(yawOffset, Vector3.up) * aimRotation;
     }
 
     private void OnDrawGizmosSelected()

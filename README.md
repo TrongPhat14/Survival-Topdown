@@ -36,6 +36,15 @@ Nên mở project bằng đúng phiên bản Unity trên để tránh Unity tự
 
 Trong Editor có thể kéo joystick và bấm các nút UI bằng chuột.
 
+### Bàn phím và chuột
+
+| Input | Chức năng |
+|---|---|
+| `WASD` | Di chuyển |
+| `Space` hoặc chuột trái | Đánh thường |
+| `Q` | Blast / đặt bom |
+| `E` | Repulse / dash |
+
 ### Gamepad
 
 | Input | Chức năng |
@@ -45,8 +54,6 @@ Trong Editor có thể kéo joystick và bấm các nút UI bằng chuột.
 | Button West | Blast / đặt bom |
 | Button North | Repulse / dash |
 
-Project hiện chưa cấu hình phím bàn phím riêng; luồng test chính dùng UI hoặc gamepad.
-
 ## Phần đã làm
 
 ### Player và combat
@@ -55,7 +62,9 @@ Project hiện chưa cấu hình phím bàn phím riêng; luồng test chính d�
 - Camera top-down follow Player bằng Cinemachine.
 - Sát thương Player nhận: `max(0, sát thương gốc - giáp)`.
 - Sát thương Player gây ra: `sát thương gốc x (1 + Damage Multiplier)`.
-- Hướng bắn và dash lấy theo `forward` hiện tại của Player.
+- Player quay mượt theo hướng di chuyển với smooth time `0.15s`; khi đánh thường, Player quay tức thời về mục tiêu gần nhất, giữ hướng trong `0.3s`, rồi trả quyền xoay lại cho movement.
+- Khi auto-target, vị trí spawn projectile được xoay theo hướng aim trước khi bắn để đạn không cắt xuyên qua thân Player trong lúc model đang xoay.
+- Dash lấy theo `forward` hiện tại của Player.
 - Đánh thường bắn 3 projectile theo góc `-15°, 0°, +15°`, mỗi viên có damage gốc `10`.
 - Tối đa 3 charge, hồi 1 charge mỗi 3 giây, fire interval 0.5 giây.
 - Bom nổ sau 2 giây, damage gốc 50, bán kính 5 unit, cooldown 12 giây.
@@ -69,6 +78,7 @@ Project hiện chưa cấu hình phím bàn phím riêng; luồng test chính d�
 - Đạn độc có tốc độ `10 unit/s`, tồn tại `0.5 giây` tương ứng tối đa 5 unit.
 - Độc tick ngay khi trúng và thêm 3 tick, mỗi tick cách 1 giây; dính lại sẽ refresh thời gian và không cộng dồn coroutine.
 - Enemy tìm đường bằng NavMesh, dừng để tấn công, phát animation Idle/Walk/Attack/Die/Victory.
+- Melee chỉ gây damage tại damage frame khi Player còn trong tầm và nằm trong góc đánh `50°` phía trước.
 - Enemy có health bar world-space luôn hướng về camera và damage popup khi nhận sát thương.
 - Enemy được spawn, thu hồi và tái sử dụng bằng Object Pool.
 
@@ -85,17 +95,16 @@ Project hiện chưa cấu hình phím bàn phím riêng; luồng test chính d�
 
 - Player health bar, level, EXP bar, joystick và ba nút kỹ năng.
 - UI charge cho đánh thường và cooldown cho bom/dash.
-- Attack range indicator cho đánh thường, vùng nổ bom và dash.
+- Một `RangeIndicatorView.prefab` dùng sprite vòng tròn world-space và được tái sử dụng bằng các instance riêng cho đánh thường, vùng nổ bom và dash.
+- Khi Player dính độc, mỗi tick hiện damage màu xanh; aura dưới chân và nhãn `POISON` đếm ngược giúp nhận biết thời gian debuff còn lại.
 - Camera shake khi projectile của Player trúng enemy, bom nổ và Player nhận damage.
 - VFX spawn/hit/bomb/dash, SFX walking/hit/bomb/level up/victory/lose/button và nhạc nền.
 - Object Pool cho enemy, projectile, VFX và damage popup.
 - Thông số gameplay chính được tách thành ScriptableObject trong `Assets/Data`.
 
-## Phần chưa làm / chưa khớp hoàn toàn với đề
+## Khác biệt cấu hình so với đề ban đầu
 
-- Đòn melee hiện kiểm tra khoảng cách và quay thẳng về Player trước khi gây damage, nhưng chưa có phép kiểm tra góc hình nón `50°` riêng tại damage frame.
 - `Wave5.asset` hiện được tăng độ khó thành 4-5 melee và 2-3 ranged; đề yêu cầu mỗi wave đều là 3-4 melee và 1-2 ranged.
-- Chưa có binding bàn phím; đây không phải yêu cầu bắt buộc vì project dùng joystick ảo.
 - Video gameplay và file build Android/Windows không được lưu trong repository này.
 
 ## Cấu hình gameplay
@@ -120,13 +129,3 @@ Một số raw Asset Store content không được commit vào repository. Trư�
 - Golem character/animation package dùng bởi `Enemy.prefab` và `RangedEnemy.prefab`
 
 Project vẫn lưu scene, gameplay scripts, prefab cấu hình, material tùy chỉnh, Input Actions, NavMesh data và Animator Controller do project tạo. Nếu dependency chưa được reimport, Unity có thể hiển thị model/material bị thiếu dù code gameplay vẫn compile.
-
-## Kiểm tra nhanh trước khi nộp
-
-1. Mở `Assets/Scenes/SampleScene.unity` và xác nhận Console không có compile error.
-2. Test joystick, ba nút kỹ năng, charge và cooldown.
-3. Test melee attack, poison 4 tick và refresh poison.
-4. Clear từng wave, kiểm tra enemy alive count và chỉ chuyển wave khi số lượng về 0.
-5. Kiểm tra EXP dư, level up và các chỉ số HP/Armor/Damage Multiplier.
-6. Test cả Victory, Game Over và Play Again.
-7. Build thiết bị đích từ **File > Build Profiles** sau khi scene chính đã được tick.

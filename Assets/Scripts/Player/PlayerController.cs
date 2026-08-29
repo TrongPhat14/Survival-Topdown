@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     private static readonly int DieStateHash = Animator.StringToHash("Base Layer.Die");
 
     [SerializeField] private Animator animator;
+    [SerializeField, Min(0f)] private float attackFacingDuration = 0.3f;
 
     public static event Action PlayerDied;
     public static bool IsPlayerDead { get; private set; }
@@ -18,6 +19,8 @@ public class PlayerController : MonoBehaviour
     private ActorMotor motor;
     private ActorFacing facing;
     private Health health;
+    private Vector3 attackFacingDirection;
+    private float attackFacingUntil;
     private bool isDead;
     private bool walkingSoundPlaying;
 
@@ -57,7 +60,17 @@ public class PlayerController : MonoBehaviour
         bool isMoving = input.sqrMagnitude > 0.01f;
 
         motor.SetMoveDirection(moveDirection);
-        facing.FaceDirection(moveDirection);
+
+        if (Time.time < attackFacingUntil &&
+            attackFacingDirection.sqrMagnitude > 0.01f)
+        {
+            facing.FaceAttackDirection(attackFacingDirection);
+        }
+        else
+        {
+            facing.FaceMovementDirection(moveDirection);
+        }
+
         UpdateWalkingSound(isMoving);
 
         if (animator != null)
@@ -72,6 +85,22 @@ public class PlayerController : MonoBehaviour
         return source != null ? source.GetMovementInputVector2() : Vector2.zero;
     }
 
+    public void RequestAttackFacing(Vector3 direction)
+    {
+        direction.y = 0f;
+
+        if (isDead ||
+            attackFacingDuration <= 0f ||
+            direction.sqrMagnitude <= 0.01f)
+        {
+            return;
+        }
+
+        attackFacingDirection = direction.normalized;
+        attackFacingUntil = Time.time + attackFacingDuration;
+        facing.FaceAttackDirection(attackFacingDirection);
+    }
+
     private void HandleDied()
     {
         if (isDead)
@@ -81,6 +110,8 @@ public class PlayerController : MonoBehaviour
 
         isDead = true;
         IsPlayerDead = true;
+        attackFacingDirection = Vector3.zero;
+        attackFacingUntil = 0f;
         motor.SetMoveDirection(Vector3.zero);
         StopWalkingSound();
         PlayerDied?.Invoke();

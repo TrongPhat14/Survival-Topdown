@@ -49,4 +49,9 @@ public class RangedEnemyController : EnemyController
             muzzle.forward,
             Data.AttackDamage);
     }
+
+    protected override bool CanDamageTargetAtImpact()
+    {
+        return IsTargetWithinAttackRange();
+    }
 }

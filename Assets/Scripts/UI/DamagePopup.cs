@@ -13,7 +13,7 @@ public class DamagePopup : MonoBehaviour
     private TMP_Text valueText;
     private DamagePopupPool ownerPool;
     private Camera targetCamera;
-    private Color initialColor;
+    private Color popupColor;
     private Vector3 initialScale;
     private Vector3 startPosition;
     private float elapsed;
@@ -22,7 +22,7 @@ public class DamagePopup : MonoBehaviour
     private void Awake()
     {
         valueText = GetComponent<TMP_Text>();
-        initialColor = valueText.color;
+        popupColor = valueText.color;
         initialScale = transform.localScale;
 
         Renderer popupRenderer = GetComponent<Renderer>();
@@ -48,12 +48,13 @@ public class DamagePopup : MonoBehaviour
         ownerPool = pool;
     }
 
-    public void Show(float damage, Vector3 position)
+    public void Show(float damage, Vector3 position, Color color)
     {
         startPosition = position;
         transform.position = position;
         transform.localScale = initialScale;
-        valueText.color = initialColor;
+        popupColor = color;
+        valueText.color = popupColor;
         valueText.SetText("-{0:0}", damage);
         targetCamera = Camera.main;
         elapsed = 0f;
@@ -71,7 +72,7 @@ public class DamagePopup : MonoBehaviour
         float progress = Mathf.Clamp01(elapsed / duration);
         transform.position = startPosition + Vector3.up * (riseDistance * progress);
 
-        Color color = initialColor;
+        Color color = popupColor;
         color.a = 1f - progress;
         valueText.color = color;
         transform.localScale = initialScale * Mathf.Lerp(1f, 1.15f, progress);

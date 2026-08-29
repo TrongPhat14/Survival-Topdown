@@ -3,26 +3,45 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class ActorFacing : MonoBehaviour
 {
-    [SerializeField] private float turnSpeedDegrees = 180f;
+    [SerializeField, Min(0.01f)] private float movementTurnSmoothTime = 0.15f;
 
     private Rigidbody rb;
     private Vector3 facingDirection;
+    private float turnVelocity;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
 
-    public void FaceDirection(Vector3 direction)
+    public void FaceMovementDirection(Vector3 direction)
+    {
+        SetFacingDirection(direction);
+    }
+
+    public void FaceAttackDirection(Vector3 direction)
+    {
+        if (!SetFacingDirection(direction))
+        {
+            return;
+        }
+
+        turnVelocity = 0f;
+        rb.angularVelocity = Vector3.zero;
+        rb.rotation = Quaternion.LookRotation(facingDirection, Vector3.up);
+    }
+
+    private bool SetFacingDirection(Vector3 direction)
     {
         direction.y = 0f;
 
         if (direction.sqrMagnitude < 0.01f)
         {
-            return;
+            return false;
         }
 
         facingDirection = direction.normalized;
+        return true;
     }
 
     private void FixedUpdate()
@@ -32,12 +51,18 @@ public class ActorFacing : MonoBehaviour
             return;
         }
 
-        Quaternion targetRotation = Quaternion.LookRotation(facingDirection, Vector3.up);
+        float targetYaw = Mathf.Atan2(
+            facingDirection.x,
+            facingDirection.z) * Mathf.Rad2Deg;
+        float smoothedYaw = Mathf.SmoothDampAngle(
+            rb.rotation.eulerAngles.y,
+            targetYaw,
+            ref turnVelocity,
+            movementTurnSmoothTime,
+            Mathf.Infinity,
+            Time.fixedDeltaTime);
 
         rb.angularVelocity = Vector3.zero;
-        rb.MoveRotation(Quaternion.RotateTowards(
-            rb.rotation,
-            targetRotation,
-            turnSpeedDegrees * Time.fixedDeltaTime));
+        rb.MoveRotation(Quaternion.Euler(0f, smoothedYaw, 0f));
     }
 }

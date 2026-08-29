@@ -52,6 +52,8 @@ GameObject:
   - component: {fileID: 9000000000000000105}
   - component: {fileID: 9000000000000000107}
   - component: {fileID: 9000000000000000109}
+  - component: {fileID: 9000000000000000110}
+  - component: {fileID: 9000000000000000111}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -74,7 +76,6 @@ Transform:
   m_Children:
   - {fileID: 7236042779289404104}
   - {fileID: 9000000000000000102}
-  - {fileID: 9000000000000000202}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!136 &2471824925959518054
@@ -139,7 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0358ccef7000f424a9e489312e3cfa34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ActorFacing
-  turnSpeedDegrees: 180
+  movementTurnSmoothTime: 0.15
 --- !u!114 &5414481567151479432
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -166,6 +167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   animator: {fileID: 1497934062283520027}
+  attackFacingDuration: 0.3
 --- !u!114 &9000000000000000103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,6 +182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponController
   muzzle: {fileID: 9000000000000000102}
   attackData: {fileID: 11400000, guid: b21567b6414045bda3da133431a7fed2, type: 2}
+  rangeIndicatorPrefab: {fileID: 11400000, guid: f3b8c4a29d1e47f68a0b5c6d7e8f9012, type: 3}
   initialPoolSize: 24
   maxPoolSize: 64
 --- !u!114 &9000000000000000104
@@ -226,6 +229,25 @@ MonoBehaviour:
   damagePopupPrefab: {fileID: 5403056517760034675, guid: 8fa06d9df12815d4aa2cdab80f815016, type: 3}
   initialPoolSize: 16
   maxPoolSize: 64
+--- !u!114 &9000000000000000111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4930967803362270311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c84c1b3547404e8dab20ee8644a68bb7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PoisonStatusView
+  auraSprite: {fileID: 21300000, guid: 0dd3fb3aa4fb7d948a1bda9b0142c068, type: 3}
+  auraColor: {r: 0.25, g: 1, b: 0.12, a: 0.18}
+  auraDiameter: 1.5
+  pulseAmount: 0.12
+  pulseSpeed: 3
+  labelOffset: {x: 0, y: 3.2, z: 0}
+  labelColor: {r: 0.45, g: 1, b: 0.12, a: 1}
 --- !u!114 &9000000000000000107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,7 +265,7 @@ MonoBehaviour:
   enemyLayers:
     serializedVersion: 2
     m_Bits: 64
-  rangeIndicatorTemplate: {fileID: 9000000000000000203}
+  rangeIndicatorTemplate: {fileID: 11400000, guid: f3b8c4a29d1e47f68a0b5c6d7e8f9012, type: 3}
 --- !u!114 &9000000000000000109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,6 +279,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerProgression
   data: {fileID: 11400000, guid: e916246423104f70908fa9b7cd725347, type: 2}
+--- !u!114 &9000000000000000110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4930967803362270311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0d51f907dd54ca5aa1b6f58ee6d4e62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerTargeting
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  targetPriority: 0
+  refreshInterval: 0.1
 --- !u!1 &9000000000000000101
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,54 +327,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6205534286227808977}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &9000000000000000201
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 9000000000000000202}
-  - component: {fileID: 9000000000000000203}
-  m_Layer: 3
-  m_Name: AttackRangeIndicator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &9000000000000000202
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9000000000000000201}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.08, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6205534286227808977}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9000000000000000203
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9000000000000000201}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d32a0df17ce4c9d9a6f789ca09c1dd6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AttackRangeIndicator
-  weapon: {fileID: 9000000000000000103}
-  lineMaterial: {fileID: 2100000, guid: c5d3ca33c69942feaf7087b2da9c6107, type: 2}
-  segments: 72
-  lineWidth: 0.08
 --- !u!1001 &6725059405430695440
 PrefabInstance:
   m_ObjectHideFlags: 0

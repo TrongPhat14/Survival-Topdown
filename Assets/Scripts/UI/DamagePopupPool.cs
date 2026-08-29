@@ -39,7 +39,7 @@ public class DamagePopupPool : MonoBehaviour
         Prewarm(initialSize);
     }
 
-    public void Show(float damage, Vector3 position)
+    public void Show(float damage, Vector3 position, Color color)
     {
         if (!IsInitialized)
         {
@@ -49,7 +49,7 @@ public class DamagePopupPool : MonoBehaviour
         DamagePopup popup = pool.Get();
         popup.transform.position = position;
         popup.gameObject.SetActive(true);
-        popup.Show(damage, position);
+        popup.Show(damage, position, color);
     }
 
     public void Release(DamagePopup popup)

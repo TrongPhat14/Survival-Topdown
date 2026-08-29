@@ -1,65 +1,34 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 
 [DisallowMultipleComponent]
 public class AttackRangeIndicator : MonoBehaviour
 {
-    [SerializeField] private WeaponController weapon;
-    [SerializeField] private Material lineMaterial;
-    [SerializeField, Range(24, 128)] private int segments = 72;
-    [SerializeField, Min(0.01f)] private float lineWidth = 0.08f;
+    private static readonly Quaternion GroundRotation =
+        Quaternion.Euler(90f, 0f, 0f);
 
-    private LineRenderer lineRenderer;
-    private GameInput gameInput;
+    [SerializeField] private SpriteRenderer ringRenderer;
+    [SerializeField] private SpriteRenderer fillRenderer;
+    [SerializeField, Min(0f)] private float heightOffset = 0.08f;
+
     private Transform followTarget;
-    private float displayRadius;
-    private float heightOffset = 0.08f;
-    private bool listenForAttackInput = true;
     private bool isRuntimeIndicator;
 
     private void Awake()
     {
-        if (weapon == null && listenForAttackInput)
+        if (ringRenderer == null)
         {
-            weapon = GetComponentInParent<WeaponController>();
+            Transform ring = transform.Find("OuterRing");
+            ringRenderer = ring != null
+                ? ring.GetComponent<SpriteRenderer>()
+                : null;
         }
 
-        EnsureLineRenderer();
-        ConfigureLine();
-
-        if (listenForAttackInput && weapon != null)
+        if (fillRenderer == null)
         {
-            displayRadius = weapon.AttackRange;
-        }
-
-        BuildCircle(displayRadius);
-        Hide();
-    }
-
-    private void OnEnable()
-    {
-        if (!listenForAttackInput)
-        {
-            Show(displayRadius);
-            return;
-        }
-
-        gameInput = GameInput.Instance;
-
-        if (gameInput != null)
-        {
-            gameInput.AttackStarted += ShowAttackRange;
-            gameInput.AttackReleased += Hide;
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (gameInput != null)
-        {
-            gameInput.AttackStarted -= ShowAttackRange;
-            gameInput.AttackReleased -= Hide;
-            gameInput = null;
+            Transform fill = transform.Find("InnerFill");
+            fillRenderer = fill != null
+                ? fill.GetComponent<SpriteRenderer>()
+                : null;
         }
 
         Hide();
@@ -80,58 +49,68 @@ public class AttackRangeIndicator : MonoBehaviour
 
         transform.SetPositionAndRotation(
             followTarget.position + Vector3.up * heightOffset,
-            Quaternion.identity);
+            GroundRotation);
     }
 
     public static AttackRangeIndicator CreateSkillIndicator(
-        AttackRangeIndicator template,
+        AttackRangeIndicator prefab,
         Transform target,
         float radius)
     {
-        if (template == null || target == null)
+        if (prefab == null || target == null)
         {
             return null;
         }
 
-        GameObject indicatorObject = new GameObject("SkillRangeIndicator");
-        indicatorObject.SetActive(false);
-        indicatorObject.layer = template.gameObject.layer;
-
-        AttackRangeIndicator indicator =
-            indicatorObject.AddComponent<AttackRangeIndicator>();
-
-        indicator.weapon = null;
-        indicator.lineMaterial = template.lineMaterial;
-        indicator.segments = template.segments;
-        indicator.lineWidth = template.lineWidth;
+        AttackRangeIndicator indicator = Instantiate(prefab);
+        indicator.name = "RangeIndicator";
         indicator.followTarget = target;
-        indicator.displayRadius = Mathf.Max(0f, radius);
-        indicator.heightOffset = template.transform.localPosition.y;
-        indicator.listenForAttackInput = false;
         indicator.isRuntimeIndicator = true;
-
-        indicatorObject.transform.position =
-            target.position + Vector3.up * indicator.heightOffset;
-        indicatorObject.SetActive(true);
+        indicator.transform.SetParent(null);
+        indicator.transform.SetPositionAndRotation(
+            target.position + Vector3.up * indicator.heightOffset,
+            GroundRotation);
+        indicator.Show(radius);
         return indicator;
     }
 
     public void Show(float radius)
     {
-        displayRadius = Mathf.Max(0f, radius);
-        BuildCircle(displayRadius);
-
-        if (lineRenderer != null)
+        if (ringRenderer == null ||
+            ringRenderer.sprite == null ||
+            radius <= 0f)
         {
-            lineRenderer.enabled = true;
+            Hide();
+            return;
+        }
+
+        float spriteDiameter = ringRenderer.sprite.bounds.size.x;
+        if (spriteDiameter <= 0f)
+        {
+            Hide();
+            return;
+        }
+
+        float scale = radius * 2f / spriteDiameter;
+        transform.localScale = new Vector3(scale, scale, 1f);
+        ringRenderer.enabled = true;
+
+        if (fillRenderer != null)
+        {
+            fillRenderer.enabled = true;
         }
     }
 
     public void Hide()
     {
-        if (lineRenderer != null)
+        if (ringRenderer != null)
         {
-            lineRenderer.enabled = false;
+            ringRenderer.enabled = false;
+        }
+
+        if (fillRenderer != null)
+        {
+            fillRenderer.enabled = false;
         }
     }
 
@@ -142,58 +121,6 @@ public class AttackRangeIndicator : MonoBehaviour
         if (isRuntimeIndicator)
         {
             Destroy(gameObject);
-        }
-    }
-
-    private void ShowAttackRange()
-    {
-        if (weapon != null)
-        {
-            Show(weapon.AttackRange);
-        }
-    }
-
-    private void EnsureLineRenderer()
-    {
-        lineRenderer = GetComponent<LineRenderer>();
-
-        if (lineRenderer == null)
-        {
-            lineRenderer = gameObject.AddComponent<LineRenderer>();
-        }
-    }
-
-    private void ConfigureLine()
-    {
-        lineRenderer.sharedMaterial = lineMaterial;
-        lineRenderer.useWorldSpace = false;
-        lineRenderer.loop = true;
-        lineRenderer.startWidth = lineWidth;
-        lineRenderer.endWidth = lineWidth;
-        lineRenderer.numCornerVertices = 2;
-        lineRenderer.numCapVertices = 0;
-        lineRenderer.alignment = LineAlignment.View;
-        lineRenderer.textureMode = LineTextureMode.Stretch;
-        lineRenderer.shadowCastingMode = ShadowCastingMode.Off;
-        lineRenderer.receiveShadows = false;
-    }
-
-    private void BuildCircle(float radius)
-    {
-        if (lineRenderer == null)
-        {
-            return;
-        }
-
-        lineRenderer.positionCount = segments;
-
-        for (int i = 0; i < segments; i++)
-        {
-            float angle = i * Mathf.PI * 2f / segments;
-            lineRenderer.SetPosition(i, new Vector3(
-                Mathf.Cos(angle) * radius,
-                0f,
-                Mathf.Sin(angle) * radius));
         }
     }
 }
