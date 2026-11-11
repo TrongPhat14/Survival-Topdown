@@ -93,6 +93,14 @@ public class GameInput : MonoBehaviour
         enabled = false;
     }
 
+    public void EnableGameplayInput()
+    {
+        if (!enabled)
+        {
+            enabled = true;
+        }
+    }
+
     private void HandleAttackStarted(InputAction.CallbackContext context)
     {
         AttackStarted?.Invoke();

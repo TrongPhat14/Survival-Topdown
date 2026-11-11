@@ -19,18 +19,25 @@ public class WeaponController : MonoBehaviour
     public event Action Fired;
     public event Action<int> ChargesChanged;
 
-    public float AttackRange => attackData != null ? attackData.AttackRange : 0f;
+    public float AttackRange => attackData != null
+        ? attackData.AttackRange * attackRangeMultiplier
+        : 0f;
     public int CurrentCharges => currentCharges;
     public int MaxCharges => attackData != null ? FixedMaxCharges : 0;
     public float ChargeRecoveryProgress =>
         attackData == null || currentCharges >= FixedMaxCharges
             ? 0f
-            : Mathf.Clamp01(chargeRecoveryTimer / attackData.ChargeRecoveryDuration);
+            : Mathf.Clamp01(chargeRecoveryTimer / ChargeRecoveryDuration);
     public float DamageMultiplier => damageMultiplier;
+    public float ChargeRecoveryDuration => attackData != null
+        ? attackData.ChargeRecoveryDuration * (1f - chargeRecoveryReduction)
+        : 0f;
 
     private float nextFireTime;
     private float chargeRecoveryTimer;
     private float damageMultiplier;
+    private float attackRangeMultiplier = 1f;
+    private float chargeRecoveryReduction;
     private int currentCharges;
     private GameInput gameInput;
     private ProjectileFactory projectileFactory;
@@ -170,6 +177,19 @@ public class WeaponController : MonoBehaviour
         damageMultiplier = Mathf.Max(0f, multiplier);
     }
 
+    public void AddAttackRangeMultiplier(float amount)
+    {
+        attackRangeMultiplier = Mathf.Max(0.1f, attackRangeMultiplier + amount);
+    }
+
+    public void AddChargeRecoveryReduction(float amount)
+    {
+        chargeRecoveryReduction = Mathf.Clamp(
+            chargeRecoveryReduction + amount,
+            0f,
+            0.75f);
+    }
+
     public float CalculateDamage(float baseDamage)
     {
         return DamageCalculator.CalculatePlayerDamage(baseDamage, damageMultiplier);
@@ -185,10 +205,10 @@ public class WeaponController : MonoBehaviour
 
         chargeRecoveryTimer += Time.deltaTime;
 
-        while (chargeRecoveryTimer >= attackData.ChargeRecoveryDuration &&
+        while (chargeRecoveryTimer >= ChargeRecoveryDuration &&
                currentCharges < FixedMaxCharges)
         {
-            chargeRecoveryTimer -= attackData.ChargeRecoveryDuration;
+            chargeRecoveryTimer -= ChargeRecoveryDuration;
             currentCharges++;
             ChargesChanged?.Invoke(currentCharges);
         }

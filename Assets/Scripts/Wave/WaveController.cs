@@ -33,6 +33,7 @@ public class WaveController : MonoBehaviour
     public WaveState State { get; private set; } = WaveState.Idle;
     public int CurrentWave { get; private set; }
     public int AliveEnemyCount => aliveEnemyCount;
+    public int TotalWaves => waves != null ? waves.Length : 0;
 
     private void Awake()
     {
@@ -130,7 +131,6 @@ public class WaveController : MonoBehaviour
 
         waveRoutine = null;
         AllWavesCompleted?.Invoke();
-        GameResultUI.Instance?.Show(GameResult.Victory);
     }
 
     private IEnumerator SpawnWave(WaveData wave)
@@ -216,5 +216,4 @@ public class WaveController : MonoBehaviour
         }
     }
 
-    private int TotalWaves => waves != null ? waves.Length : 0;
 }

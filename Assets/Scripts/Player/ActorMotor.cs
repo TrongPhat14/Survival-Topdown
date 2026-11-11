@@ -7,6 +7,9 @@ public class ActorMotor : MonoBehaviour
 
     private Rigidbody rb;
     private Vector3 moveDirection;
+    private float moveSpeedMultiplier = 1f;
+
+    public float MoveSpeed => moveSpeed * moveSpeedMultiplier;
 
     private void Awake()
     {
@@ -15,7 +18,7 @@ public class ActorMotor : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector3 velocity = moveDirection * moveSpeed;
+        Vector3 velocity = moveDirection * MoveSpeed;
         velocity.y = rb.linearVelocity.y;
         rb.linearVelocity = velocity;
     }
@@ -29,5 +32,10 @@ public class ActorMotor : MonoBehaviour
     public Vector3 GetMoveDirection()
     {
         return moveDirection;
+    }
+
+    public void AddMoveSpeedMultiplier(float amount)
+    {
+        moveSpeedMultiplier = Mathf.Max(0.1f, moveSpeedMultiplier + amount);
     }
 }

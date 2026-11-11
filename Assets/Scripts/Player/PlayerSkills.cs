@@ -26,8 +26,15 @@ public class PlayerSkills : MonoBehaviour
     public float DashCooldownRemaining =>
         Mathf.Max(0f, nextDashReadyTime - Time.time);
 
-    public float BombCooldown => bombData != null ? bombData.Cooldown : 0f;
-    public float DashCooldown => dashData != null ? dashData.Cooldown : 0f;
+    public float BombCooldown => bombData != null
+        ? bombData.Cooldown * (1f - skillCooldownReduction)
+        : 0f;
+    public float DashCooldown => dashData != null
+        ? dashData.Cooldown * (1f - skillCooldownReduction)
+        : 0f;
+    public float BombRadius => bombData != null
+        ? bombData.ExplosionRadius * bombRadiusMultiplier
+        : 0f;
 
     public bool IsDashing => dashRoutine != null;
 
@@ -42,6 +49,8 @@ public class PlayerSkills : MonoBehaviour
     private float nextBombReadyTime;
     private float nextDashReadyTime;
     private float damageMultiplier;
+    private float bombRadiusMultiplier = 1f;
+    private float skillCooldownReduction;
 
     private void Awake()
     {
@@ -103,15 +112,15 @@ public class PlayerSkills : MonoBehaviour
             DamageCalculator.CalculatePlayerDamage(
                 bombData.BaseDamage,
                 damageMultiplier),
-            bombData.ExplosionRadius,
+            BombRadius,
             enemyLayers,
             rangeIndicatorTemplate,
             vfxPool,
             bombData.ExplosionEffectPrefab,
             bombData.ExplosionEffectScale);
 
-        nextBombReadyTime = Time.time + bombData.Cooldown;
-        BombCooldownStarted?.Invoke(bombData.Cooldown);
+        nextBombReadyTime = Time.time + BombCooldown;
+        BombCooldownStarted?.Invoke(BombCooldown);
         return true;
     }
 
@@ -130,8 +139,8 @@ public class PlayerSkills : MonoBehaviour
             return false;
         }
 
-        nextDashReadyTime = Time.time + dashData.Cooldown;
-        DashCooldownStarted?.Invoke(dashData.Cooldown);
+        nextDashReadyTime = Time.time + DashCooldown;
+        DashCooldownStarted?.Invoke(DashCooldown);
         dashRoutine = StartCoroutine(DashRoutine(direction.normalized));
         return true;
     }
@@ -220,6 +229,19 @@ public class PlayerSkills : MonoBehaviour
     public void SetDamageMultiplier(float multiplier)
     {
         damageMultiplier = Mathf.Max(0f, multiplier);
+    }
+
+    public void AddBombRadiusMultiplier(float amount)
+    {
+        bombRadiusMultiplier = Mathf.Max(0.1f, bombRadiusMultiplier + amount);
+    }
+
+    public void AddSkillCooldownReduction(float amount)
+    {
+        skillCooldownReduction = Mathf.Clamp(
+            skillCooldownReduction + amount,
+            0f,
+            0.6f);
     }
 
     private void HandleOwnerDied()

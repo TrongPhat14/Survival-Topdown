@@ -21,8 +21,12 @@ public class PlayerController : MonoBehaviour
     private Health health;
     private Vector3 attackFacingDirection;
     private float attackFacingUntil;
+    private Transform autoMoveTarget;
+    private float autoMoveStoppingDistance;
     private bool isDead;
     private bool walkingSoundPlaying;
+
+    public bool IsAutoMoving => autoMoveTarget != null && !isDead;
 
     private void Awake()
     {
@@ -45,6 +49,7 @@ public class PlayerController : MonoBehaviour
     private void OnDisable()
     {
         health.Died -= HandleDied;
+        StopAutoMove();
         StopWalkingSound();
     }
 
@@ -55,13 +60,70 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (autoMoveTarget != null)
+        {
+            UpdateAutoMovement();
+            return;
+        }
+
         Vector2 input = GetMovementInput();
         Vector3 moveDirection = new Vector3(input.x, 0f, input.y);
-        bool isMoving = input.sqrMagnitude > 0.01f;
+        ApplyMovement(moveDirection, true);
+    }
+
+    public bool BeginAutoMove(
+        Transform target,
+        float stoppingDistance = 0.2f)
+    {
+        if (target == null || isDead)
+        {
+            return false;
+        }
+
+        autoMoveTarget = target;
+        autoMoveStoppingDistance = Mathf.Max(0.05f, stoppingDistance);
+        attackFacingDirection = Vector3.zero;
+        attackFacingUntil = 0f;
+        return true;
+    }
+
+    public void StopAutoMove()
+    {
+        autoMoveTarget = null;
+        motor?.SetMoveDirection(Vector3.zero);
+        StopWalkingSound();
+
+        if (animator != null)
+        {
+            animator.SetBool(IsRunningHash, false);
+        }
+    }
+
+    private void UpdateAutoMovement()
+    {
+        Vector3 offset = autoMoveTarget.position - transform.position;
+        offset.y = 0f;
+
+        if (offset.sqrMagnitude <=
+            autoMoveStoppingDistance * autoMoveStoppingDistance)
+        {
+            StopAutoMove();
+            return;
+        }
+
+        ApplyMovement(offset.normalized, false);
+    }
+
+    private void ApplyMovement(
+        Vector3 moveDirection,
+        bool allowAttackFacing)
+    {
+        bool isMoving = moveDirection.sqrMagnitude > 0.01f;
 
         motor.SetMoveDirection(moveDirection);
 
-        if (Time.time < attackFacingUntil &&
+        if (allowAttackFacing &&
+            Time.time < attackFacingUntil &&
             attackFacingDirection.sqrMagnitude > 0.01f)
         {
             facing.FaceAttackDirection(attackFacingDirection);
@@ -110,6 +172,7 @@ public class PlayerController : MonoBehaviour
 
         isDead = true;
         IsPlayerDead = true;
+        autoMoveTarget = null;
         attackFacingDirection = Vector3.zero;
         attackFacingUntil = 0f;
         motor.SetMoveDirection(Vector3.zero);
